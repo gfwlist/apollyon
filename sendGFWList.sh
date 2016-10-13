@@ -1,40 +1,55 @@
-#!/bin/bash
+#!/bin/bash -
+# (C) Copyright 2009-2016 GFWList
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# A simple script help to maintain AutoProxy gfwList easily.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-# Features:
-#   Update local svn repository;
-#   Commit decoded changes(by others in your team) to local git repository
-#           with decoded message and authors name;
-#   Update "Last Modified" & "Checksum";
-#   Commit your changes to local git repository;
-#   Commit your encoded changes to remote svn server with encoded log;
-#   Plus some error handling.
-# Usage:
-#   Initialize:
-#     $svn checkout https://autoproxy-gfwlist.googlecode.com/svn/trunk/ gfwList --username your-google-user-name
-#     $cd gfwList
-#     $git init
-#     $openssl base64 -d -in gfwlist.txt -out list.txt
-#     $git add list.txt
-#     $git commit -a -m "init"
-#   Normal Usage:
-#     edit list.txt as usual;
-#     $./sendGFWList.sh "say something about this edit"
-# Note:
-#   1: You can use "$git log" "$git show" "$git diff"...;
-#   2: Do NOT commit "list.txt" to svn server (it won't by default);
-#   3: Do NOT use any unicode character in the list, there is a known bug;
-#   4: Do NOT "svn update", run this script to update / commit at any time.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Shell script to maintain GFWList.
+#   Features:
+#     Update local svn repository;
+#     Commit decoded changes(by others in your team) to local git repository
+#             with decoded message and authors name;
+#     Update "Last Modified" & "Checksum";
+#     Commit your changes to local git repository;
+#     Commit your encoded changes to remote svn server with encoded log;
+#    Plus some error handling.
+#   Usage:
+#     Initialize:
+#       $svn checkout https://autoproxy-gfwlist.googlecode.com/svn/trunk/ gfwList --username your-google-user-name
+#       $cd gfwList
+#       $git init
+#       $openssl base64 -d -in gfwlist.txt -out list.txt
+#       $git add list.txt
+#       $git commit -a -m "init"
+#     Normal Usage:
+#       edit list.txt as usual;
+#       $./sendGFWList.sh "say something about this edit"
+#   Note:
+#     1: You can use "$git log" "$git show" "$git diff"...;
+#     2: Do NOT commit "list.txt" to svn server (it won't by default);
+#     3: Do NOT use any unicode character in the list, there is a known bug;
+#     4: Do NOT "svn update", run this script to update / commit at any time.
 ################################################################################
 
-# dependence
-for cmd in sed openssl awk svn git perl file
+set -u
+
+
+# Sanity check.
+for cmd in date file git openssl perl python
 do
-  which $cmd &> /dev/null;
-  if [ $? -ne 0 ]; then
-    echo "Error: depends on $cmd, please install it first.";
-    exit 1;
+  command -p $cmd &> /dev/null;
+  if [[ $? -ne 0 ]]; then	
+      echo "Error: You must have $cmd command installed on the system!";
   fi
 done
 
